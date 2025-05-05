@@ -11,6 +11,9 @@ import pickle
 movies = pd.read_csv('movies.csv')
 cosine_sim = np.load('cosine_sim.npy')
 
+
+
+
 def get_recommendations(title, cosine_sim=cosine_sim):
     idx = movies[movies['title'] == title].index[0]
     sim_scores = list(enumerate(cosine_sim[idx]))
