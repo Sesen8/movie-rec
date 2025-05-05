@@ -1,13 +1,15 @@
 import pandas as pd
+import numpy as np
 import streamlit as st
 import requests
 import pickle
 
-import gzip
-with gzip.open('movie_data.pkl.gz', 'rb') as f:
-    movies, cosine_sim = pickle.load(f)
+# import gzip
+# with gzip.open('movie_data.pkl.gz', 'rb') as f:
+#     movies, cosine_sim = pickle.load(f)
 
-
+movies = pd.read_csv('movies.csv')
+cosine_sim = np.load('cosine_sim.npy')
 
 def get_recommendations(title, cosine_sim=cosine_sim):
     idx = movies[movies['title'] == title].index[0]
@@ -46,7 +48,9 @@ if selected_movie:
         # Extract movie details
         movie_title = matching_movie['title']
         movie_overview = matching_movie['overview']
-        movie_release_year = matching_movie['release_year'][:4]  # Extracting year from the release_date string
+        # movie_release_year = matching_movie['release_year'][:4]  # Extracting year from the release_date string
+        movie_release_year = str(matching_movie['release_year'])[:4] if pd.notna(matching_movie['release_year']) else "N/A"
+
         
         # Display the selected movie's information
         col1, col2 = st.columns([1, 2])  # Create two columns, with the second column wider
