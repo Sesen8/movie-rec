@@ -3,9 +3,10 @@ import streamlit as st
 import requests
 import pickle
 
+import gzip
+with gzip.open('movie_data.pkl.gz', 'rb') as f:
+    movies, cosine_sim = pickle.load(f)
 
-with open('movie_data.pkl', 'rb') as file:
-    movies, cosine_sim = pickle.load(file)
 
 
 def get_recommendations(title, cosine_sim=cosine_sim):
