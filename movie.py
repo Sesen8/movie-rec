@@ -9,6 +9,27 @@ from fuzzywuzzy import fuzz, process  # For fuzzy matching
 movies = pd.read_csv('movies.csv')
 cosine_sim = np.load('cosine_sim.npy')
 
+import ast
+
+import ast
+
+def safe_eval_list(x):
+    if pd.isna(x):
+        return []
+    if isinstance(x, list):
+        return x
+    if isinstance(x, str) and x.strip().startswith('[') and x.strip().endswith(']'):
+        try:
+            return ast.literal_eval(x)
+        except:
+            return []
+    return x.split()  # fallback for space-separated strings
+
+list_columns = ['genres', 'keywords', 'cast', 'crew']
+for col in list_columns:
+    movies[col] = movies[col].apply(safe_eval_list)
+
+
 # Extract all tags and genres
 all_tags = movies['tags'].str.split().explode()
 all_genres = sorted(set(all_tags).intersection(set([
@@ -63,12 +84,10 @@ if selected_movie:
         with col1:
             st.image(fetch_poster(matching_movie['movie_id']), width=200)
         with col2:
-        #     st.write(f"### {movie_title} ({movie_release_year})")
-        #     st.write(movie_overview)
-
-
+            # Display title and release year
             st.markdown(f"## {matching_movie['title']} ({matching_movie['release_year']})")
             
+            # Display Overview
             st.markdown("### Overview")
             st.write(
                 matching_movie['overview']
@@ -76,17 +95,35 @@ if selected_movie:
                 else "No overview available."
             )
 
-            st.markdown("### Tags")
-            tag_list = matching_movie['tags'].split() if pd.notna(matching_movie['tags']) else []
-            if tag_list:
-                tag_html = " ".join([
-                    f"<span style='display:inline-block;background-color:#d0e8ff;border-radius:20px;padding:6px 12px;margin:4px;font-size:13px;'>{tag}</span>"
-                    for tag in tag_list
-                ])
-                st.markdown(tag_html, unsafe_allow_html=True)
+            # Genres
+            st.markdown("### Genre")
+            if isinstance(matching_movie['genres'], list) and len(matching_movie['genres']) > 0:
+                st.write(", ".join(matching_movie['genres']))
             else:
-                st.write("No tags available.")
-            
+                st.write("No genres available.")
+
+            # Cast
+            st.markdown("### Cast")
+            if isinstance(matching_movie['cast'], list) and len(matching_movie['cast']) > 0:
+                st.write(", ".join(matching_movie['cast'][:10]))  # Show top 10 cast members
+            else:
+                st.write("No cast available.")
+
+            # Crew
+            st.markdown("### Crew")
+            if isinstance(matching_movie['crew'], list) and len(matching_movie['crew']) > 0:
+                st.write(", ".join(matching_movie['crew'][:10]))  # Show top 10 crew members
+            else:
+                st.write("No crew available.")
+
+            # Keywords
+            st.markdown("### Keywords")
+            if isinstance(matching_movie['keywords'], list) and len(matching_movie['keywords']) > 0:
+                st.write(", ".join(matching_movie['keywords']))
+            else:
+                st.write("No keywords available.")
+    
+   
 
         # Get recommendations based on cosine similarity
         recommendations = get_recommendations(movie_title)
